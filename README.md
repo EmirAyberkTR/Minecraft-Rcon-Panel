@@ -12,8 +12,8 @@ Minecraft sunucunuzu izlemek ve yönetmek için **Electron** ve **Vanilla JS/CSS
 - **👑 OP (Operatör) Yönetimi:** Sunucudaki operatör listesini `ops.json` üzerinden dinamik olarak çekin, tek tıkla yetki verin veya alın.
 - **🔌 Plugin Denetleyicisi:** Yüklü olan tüm pluginleri listeyin; tam versiyonlarını, yazarlarını, açıklamalarını ve aktiflik durumlarını (aktif/devre dışı) görün.
 - **🎨 Modern Arayüz:** Çerçevesiz (frameless) pencere tasarımı, koyu tema renk paleti ve akıcı geçişler.
-<img width="1211" height="643" alt="image" src="https://github.com/user-attachments/assets/33dde83a-d11a-4020-ae13-c5b68621eede" />
-<img width="1210" height="641" alt="image" src="https://github.com/user-attachments/assets/57a84058-250f-4832-9810-785b56d50f40" />
+<img width="1270" height="809" alt="image" src="https://github.com/user-attachments/assets/33a0407d-206f-4565-8ce0-3374190a44d9" />
+<img width="1276" height="820" alt="image" src="https://github.com/user-attachments/assets/e7b44400-31cd-4587-a1cc-c70f627bb710" />
 ---
 
 ## 🛠️ Sistem Mimarisi
