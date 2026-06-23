@@ -81,8 +81,23 @@ document.getElementById('btn-agent-connect').addEventListener('click', async () 
   if (res.success) {
     state.agentConnected = true;
     fb.className = 'conn-feedback ok';
-    fb.textContent = `✓ Agent bağlandı (v${res.version})`;
+    fb.textContent = `✓ Agent bağlandı (v${res.version || '1.0'})`;
     toast('Agent bağlandı', 'ok');
+    
+    fetchOp();
+    
+    try {
+      const mRes = await window.mcapi.agentMetrics();
+      if (mRes && mRes.success) {
+         renderMetrics(mRes.data);
+      } else {
+         toast('Agent CPU/RAM çekilemedi (Hata)', 'err');
+      }
+    } catch (e) {
+      console.error(e);
+      toast('Agent CPU/RAM çekilemedi (CORS)', 'err');
+    }
+    
   } else {
     state.agentConnected = false;
     fb.className = 'conn-feedback err';
@@ -90,12 +105,11 @@ document.getElementById('btn-agent-connect').addEventListener('click', async () 
     toast('Agent hatası: ' + res.error, 'err');
   }
 });
-
 // ── After RCON connected ───────────────────────────────────────────────────────
 async function onRconConnected() {
   await fetchVersion();
   await fetchPlayers();
-  await fetchPlugins();
+  fetchPlugins();
   await fetchOp();
   window.mcapi.startPolling(1000);
   addLog('info', 'RCON bağlantısı kuruldu.');
@@ -194,9 +208,17 @@ function renderLogs() {
 async function fetchVersion() {
   const res = await window.mcapi.rconSend('version');
   if (res.success && res.response) {
-    // "This server is running Purpur version git-Purpur-..."
-    const match = res.response.match(/Purpur[^\n]*/i) || res.response.match(/version[^\n]*/i);
-    const ver = match ? match[0].replace(/This server is running /i,'').split(' (')[0] : res.response.split('\n')[0];
+    let verText = res.response;
+    
+    // "Checking version, please wait..." mesajını temizle
+    if (verText.toLowerCase().includes('please wait')) {
+      const lines = verText.split('\n').filter(l => !l.toLowerCase().includes('please wait') && l.trim() !== '');
+      if (lines.length > 0) verText = lines[0];
+    }
+
+    const match = verText.match(/(Purpur|Paper|Spigot|Bukkit) version [^\s]+/i);
+    const ver = match ? match[0] : verText.split('\n')[0].replace(/This server is running /i, '').split(' (')[0];
+    
     document.getElementById('srv-version').textContent = '— ' + ver;
     addLog('info', res.response.split('\n')[0]);
   }
@@ -269,7 +291,7 @@ function renderPlayerList(containerId, mini) {
     const pingColor = p.ping === '?' ? 'var(--text1)' : p.ping < 50 ? '#4ade80' : p.ping < 100 ? '#f59e0b' : '#ef4444';
     return `<div class="player-row">
       <div class="player-info">
-        <div class="avatar">${p.name.slice(0,2).toUpperCase()}</div>
+        <img src="https://minotar.net/helm/${p.name}/40.png" style="width: 32px; height: 32px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
         <div>
           <div class="player-name">${escHtml(p.name)}${p.op ? '<span class="op-tag">OP</span>' : ''}</div>
           <div class="player-meta" style="color:${pingColor}">${p.ping}ms${p.world !== '?' ? ' · ' + p.world : ''}</div>
@@ -296,82 +318,123 @@ window.confirmBan = confirmBan;
 
 // ── Op management ─────────────────────────────────────────────────────────────
 async function fetchOp() {
-  const res = await window.mcapi.rconSend('op --help');
-  // Purpur'da doğrudan op listesi RCON ile alınamaz (ops.json okumak gerekir)
-  // Agent varsa agent'tan çekeceğiz, yoksa boş göster
-  renderOpList();
-}
-
-document.getElementById('op-add-btn').addEventListener('click', async () => {
-  const name = document.getElementById('op-inp').value.trim();
-  if (!name) return;
-  await sendCmd(`op ${name}`);
-  if (!state.opList.includes(name)) state.opList.push(name);
-  renderOpList();
-  document.getElementById('op-inp').value = '';
-  toast(`${name} op verildi`, 'ok');
-});
-
-function renderOpList() {
   const c = document.getElementById('op-list');
-  if (state.opList.length === 0) {
+  
+  if (!state.agentConnected) {
     c.innerHTML = '<div class="empty-state" style="padding:16px 0">Op listesi için agent bağlantısı gerekli.</div>';
     return;
   }
-  const onlineNames = state.players.map(p => p.name);
-  c.innerHTML = state.opList.map((name, i) => `
-    <div class="op-row">
-      <div style="display:flex;align-items:center">
-        ${onlineNames.includes(name) ? '<span class="op-online"></span>' : ''}
-        <div class="avatar" style="margin-right:8px;background:rgba(250,204,21,.08);color:#ca8a04;border-color:rgba(202,138,4,.2)">${name.slice(0,2).toUpperCase()}</div>
-        <span class="op-name">${escHtml(name)}</span>
+
+  try {
+    // ARTIK DOĞRUDAN ARKA PLANDAN ÇEKİYORUZ (CORS YOK!)
+    const res = await window.mcapi.agentOps();
+
+    if (!res.success) {
+       c.innerHTML = `<div class="empty-state" style="padding:16px 0; color: #ef4444;">Bağlantı Hatası: ${res.error}</div>`;
+       return;
+    }
+
+    const data = res.data;
+
+    if (data.error) {
+       c.innerHTML = `<div class="empty-state" style="padding:16px 0; color: #ef4444;">Ajan Hatası: ${data.error}</div>`;
+       return;
+    }
+
+    state.opList = data.ops || [];
+    state.players.forEach(p => { p.op = state.opList.includes(p.name); });
+
+    if (state.opList.length === 0) {
+      c.innerHTML = '<div class="empty-state" style="padding:16px 0">Şu an sunucuda kimse OP değil.</div>';
+      renderPlayerList('player-table', false); 
+      renderPlayerList('d-player-list', true);
+      return;
+    }
+
+    c.innerHTML = state.opList.map(op => `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px; border-bottom: 1px solid var(--border);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="https://minotar.net/helm/${op}/24.png" style="width:24px; height:24px; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+          <span style="font-weight: 500;">${op}</span>
+        </div>
+        <button class="btn-ghost sm" onclick="takeOp('${op}')" style="color: #ef4444; border-color: #ef444433;">Yetkiyi Al</button>
       </div>
-      <button class="deop-btn" onclick="deopPlayer(${i})">− DeOp</button>
-    </div>`).join('');
-}
+    `).join('');
 
-async function deopPlayer(i) {
-  const name = state.opList[i];
-  if (!confirm(`${name} oyuncusunun op'unu almak istiyor musun?`)) return;
-  await sendCmd(`deop ${name}`);
-  state.opList.splice(i, 1);
-  renderOpList();
-  toast(`${name} op alındı`);
-}
-window.deopPlayer = deopPlayer;
+    renderPlayerList('player-table', false);
+    renderPlayerList('d-player-list', true);
 
-// ── Plugins ───────────────────────────────────────────────────────────────────
+  } catch (err) {
+    console.error("Op listesi çekme hatası:", err);
+    c.innerHTML = `<div class="empty-state" style="padding:16px 0; color: #ef4444;">Sistem Hatası: ${err.message}</div>`;
+  }
+}
+// ── Plugins (Tam ve Hatasız Sürüm) ─────────────────────────────────────────
+
 async function fetchPlugins() {
-  const res = await window.mcapi.rconSend('plugins');
-  if (!res.success) return;
+  try {
+    const res = await window.mcapi.rconSend('plugins');
+    if (!res.success) return;
 
-  // Purpur: "Plugins (8): EssentialsX, LuckPerms, ..."
-  // Enabled [PluginName] veya disabled olanlar farklı gösterilir
-  const raw = res.response;
-  const match = raw.match(/Plugins \((\d+)\):\s*(.*)/s);
-  if (!match) return;
+    let raw = res.response.replace(/§[0-9a-fk-orx]/gi, '');
+    raw = raw.replace(/[a-zA-Z]+\s*Plugins\s*\(\d+\):/gi, '');
 
-  const count = parseInt(match[1]);
-  const list = match[2].split(/,\s*/).map(entry => {
-    // Purpur bazı sürümlerde §a (yeşil=enabled) §c (kırmızı=disabled) prefix verir
-    const name = entry.replace(/§[0-9a-fk-or]/gi, '').trim();
-    const enabled = !entry.includes('§c') && name.length > 0;
-    return { name, enabled, ver: '—', author: '—', desc: '' };
-  }).filter(p => p.name);
+    const names = raw.split(',')
+                   .map(n => n.replace(/^[-:\s]+/, '').trim())
+                   .filter(n => n.length > 0);
 
-  state.plugins = list;
-  document.getElementById('plugin-header-sub').textContent = `${list.filter(p=>p.enabled).length} aktif / ${list.length} toplam`;
-  document.getElementById('plugin-header-sub').textContent = `${count} plugin`;
-  renderPluginList();
+    let list = [];
+    const subHeader = document.getElementById('plugin-header-sub');
+    if(subHeader) subHeader.textContent = `${names.length} plugin bulunuyor...`;
+
+    // Sunucu bağlantıyı kesmesin diye aralara 150ms bekleme ekledik
+    for (let name of names) {
+      let pObj = { name: name, enabled: true, ver: 'Yükleniyor...', author: '—', desc: '' };
+
+      try {
+        await new Promise(r => setTimeout(r, 150)); 
+        const detailRes = await window.mcapi.rconSend(`version ${name}`);
+        
+        if (detailRes.success && detailRes.response) {
+          let detailRaw = detailRes.response.replace(/§[0-9a-fk-orx]/gi, '');
+          const lines = detailRaw.split('\n').map(l => l.trim());
+
+          const verMatch = lines[0].match(/version\s+(.+)/i);
+          if (verMatch) pObj.ver = verMatch[1];
+
+          const authorLine = lines.find(l => l.toLowerCase().startsWith('author'));
+          if (authorLine) pObj.author = authorLine.split(':')[1].trim();
+
+          const descLine = lines.find(l => l.toLowerCase().startsWith('description'));
+          if (descLine) pObj.desc = descLine.split(':')[1].trim();
+        }
+      } catch (err) {
+        pObj.ver = 'Bilinmiyor';
+      }
+      
+      list.push(pObj);
+      state.plugins = list;
+      
+      // Ekranda renderPluginList varsa çizdir
+      if (typeof renderPluginList === "function") renderPluginList();
+    }
+
+    if(subHeader) subHeader.textContent = `${list.length} plugin`;
+
+  } catch (error) {
+    console.error("Eklenti çekme hatası:", error);
+  }
 }
-window.fetchPlugins = fetchPlugins;
 
 function renderPluginList() {
   const c = document.getElementById('plugin-list');
+  if (!c) return; // Hata koruması
+  
   if (state.plugins.length === 0) {
     c.innerHTML = '<div class="empty-state" style="padding:16px 0">Plugin bulunamadı.</div>';
     return;
   }
+  
   c.innerHTML = state.plugins.map((p, i) => `
     <div class="plugin-row" onclick="showPlugin(${i})">
       <div>
@@ -393,6 +456,7 @@ function showPlugin(i) {
       ${p.desc ? `<tr><td colspan="2" style="padding-top:10px;color:var(--text1);font-size:11px;line-height:1.5">${escHtml(p.desc)}</td></tr>` : ''}
     </table>`;
 }
+
 window.showPlugin = showPlugin;
 
 // ── Metrics (from agent) ──────────────────────────────────────────────────────
@@ -433,7 +497,7 @@ async function refreshAll() {
   if (!state.rconConnected) { toast('RCON bağlı değil', 'err'); return; }
   await fetchVersion();
   await fetchPlayers();
-  await fetchPlugins();
+  fetchPlugins();
   if (state.agentConnected) {
     const res = await window.mcapi.agentMetrics();
     if (res.success) renderMetrics(res.data);
@@ -515,25 +579,35 @@ window.mcapi.on('agent-log-update', (lines) => {
 });
 
 // ── Gerçek Ping Ölçümü (EssentialsX üzerinden) ──────────────────
+// ── Gerçek Ping ve TPS Ölçümü ──────────────────────────────────
 setInterval(async () => {
-  if (state.rconConnected && state.players.length > 0) {
-    // Tüm oyuncular için sırayla ping komutu gönder
+  if (!state.rconConnected) return;
+
+  // 1. TPS Çekimi (RCON üzerinden)
+  try {
+    const tpsRes = await window.mcapi.rconSend('tps');
+    if (tpsRes.success && tpsRes.response) {
+      // Örnek çıktı: "TPS from last 1m, 5m, 15m: 20.0, 20.0, 20.0"
+      const match = tpsRes.response.match(/:\s*\*?([\d\.]+)/);
+      if (match) {
+        const tpsVal = parseFloat(match[1]);
+        document.getElementById('m-tps').textContent = tpsVal.toFixed(1);
+        document.getElementById('m-tps-sub').textContent = tpsVal >= 19 ? 'Mükemmel' : tpsVal >= 15 ? 'İyi' : 'Düşük';
+      }
+    }
+  } catch (err) {}
+
+  // 2. Oyuncu Pingleri (EssentialsX üzerinden)
+  if (state.players.length > 0) {
     for (let p of state.players) {
       try {
         const res = await window.mcapi.rconSend(`ping ${p.name}`);
         if (res.success && res.response) {
-          // EssentialsX ping yanıtı genelde "Pong! 45ms" veya "Ayberk's ping is 45ms" şeklindedir
           const match = res.response.match(/(\d+)\s*ms/i);
-          if (match) {
-            p.ping = parseInt(match[1]);
-          }
+          if (match) p.ping = parseInt(match[1]);
         }
-      } catch (err) {
-        console.error("Ping çekilemedi:", err);
-      }
+      } catch (err) {}
     }
-    
-    // Değerler güncellendikten sonra listeleri yeniden çiz
     renderPlayerList('d-player-list', true);
     renderPlayerList('player-table', false);
     renderPlayerList('console-players', true);

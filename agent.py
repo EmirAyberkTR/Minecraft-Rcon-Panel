@@ -60,7 +60,7 @@ def metrics():
     cpu_logical = psutil.cpu_count(logical=True) or 1
 
     # Minecraft klasör boyutu (isteğe bağlı, yavaş olabilir büyük sunucularda)
-    mc_size = dir_size(MC_SERVER_DIR) if os.path.isdir(MC_SERVER_DIR) else 0
+    # mc_size = dir_size(MC_SERVER_DIR) if os.path.isdir(MC_SERVER_DIR) else 0
 
     return jsonify({
         "cpu_percent":   round(cpu, 1),
@@ -72,7 +72,7 @@ def metrics():
         "disk_used":     disk.used,
         "disk_total":    disk.total,
         "disk_percent":  round(disk.percent, 1),
-        "mc_size":       mc_size,
+        #"mc_size":       mc_size,
         "uptime_seconds": int(uptime),
         "version":       VERSION,
     })

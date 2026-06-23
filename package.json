@@ -1,6 +1,6 @@
 {
   "name": "mc-panel",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Minecraft RCON Yönetim Paneli",
   "author": "MC Panel",
   "main": "src/main.js",

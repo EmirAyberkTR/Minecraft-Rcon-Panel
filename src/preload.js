@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('mcapi', {
   // Agent
   agentConnect:  (opts) => ipcRenderer.invoke('agent-connect', opts),
   agentMetrics:  ()     => ipcRenderer.invoke('agent-metrics'),
+  agentOps:      ()     => ipcRenderer.invoke('agent-ops'), // BURA YENİ EKLENDİ
 
   // Polling
   startPolling: (ms) => ipcRenderer.invoke('start-polling', ms),

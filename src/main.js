@@ -119,6 +119,16 @@ ipcMain.handle('agent-metrics', async () => {
   }
 });
 
+ipcMain.handle('agent-ops', async () => {
+  if (!agentBaseUrl) return { success: false, error: 'Agent bağlı değil' };
+  try {
+    const data = await httpGet(`${agentBaseUrl}/ops`);
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 // ─── Polling (canlı veri) ──────────────────────────────────────────────────────
 
 ipcMain.handle('start-polling', async (_, intervalMs = 3000) => {
