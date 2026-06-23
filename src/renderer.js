@@ -276,8 +276,8 @@ function renderPlayerList(containerId, mini) {
         </div>
       </div>
       ${!mini ? `<div class="player-actions">
-        <button class="act-btn g" onclick="sendCmd('tp ${p.name} ${p.name}')">tp</button>
-        <button class="act-btn" onclick="sendCmd('msg ${p.name} ')">msg</button>
+        <button class="act-btn g" onclick="openTpModal('${p.name}')">tp</button>
+        <button class="act-btn" onclick="openMsgModal('${p.name}')">msg</button>
         <button class="act-btn w" onclick="confirmKick('${p.name}')">kick</button>
         <button class="act-btn r" onclick="confirmBan('${p.name}')">ban</button>
       </div>` : ''}
@@ -513,6 +513,97 @@ window.mcapi.on('agent-log-update', (lines) => {
     newLines.forEach(line => addLog('out', line)); // Yeni satırları konsola yazdır
   }
 });
+
+// ── Gerçek Ping Ölçümü (EssentialsX üzerinden) ──────────────────
+setInterval(async () => {
+  if (state.rconConnected && state.players.length > 0) {
+    // Tüm oyuncular için sırayla ping komutu gönder
+    for (let p of state.players) {
+      try {
+        const res = await window.mcapi.rconSend(`ping ${p.name}`);
+        if (res.success && res.response) {
+          // EssentialsX ping yanıtı genelde "Pong! 45ms" veya "Ayberk's ping is 45ms" şeklindedir
+          const match = res.response.match(/(\d+)\s*ms/i);
+          if (match) {
+            p.ping = parseInt(match[1]);
+          }
+        }
+      } catch (err) {
+        console.error("Ping çekilemedi:", err);
+      }
+    }
+    
+    // Değerler güncellendikten sonra listeleri yeniden çiz
+    renderPlayerList('d-player-list', true);
+    renderPlayerList('player-table', false);
+    renderPlayerList('console-players', true);
+  }
+}, 10000);
+
+// ── Popup (Modal) Yönetimi ─────────────────────────────────────
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+// MSG Modalı
+function openMsgModal(targetPlayer) {
+  document.getElementById('modal-title').textContent = `${targetPlayer} - Özel Mesaj`;
+  document.getElementById('modal-body').innerHTML = `
+    <label class="field-label">Mesajınız:</label>
+    <input type="text" id="modal-msg-inp" class="field" placeholder="Selam..." onkeydown="if(event.key==='Enter') submitMsg('${targetPlayer}')">
+  `;
+  document.getElementById('modal-foot').innerHTML = `
+    <button class="btn-ghost" onclick="closeModal()">İptal</button>
+    <button class="btn-primary" onclick="submitMsg('${targetPlayer}')">Gönder</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('modal-msg-inp').focus(), 100);
+}
+
+function submitMsg(targetPlayer) {
+  const msg = document.getElementById('modal-msg-inp').value.trim();
+  if (msg) {
+    sendCmd(`msg ${targetPlayer} ${msg}`);
+    closeModal();
+    toast('Mesaj gönderildi', 'ok');
+  }
+}
+
+// TP Modalı
+function openTpModal(targetPlayer) {
+  // Kendisi hariç diğer oyuncuları bul
+  const others = state.players.filter(p => p.name !== targetPlayer).map(p => p.name);
+  
+  document.getElementById('modal-title').textContent = `${targetPlayer} - Işınla`;
+  
+  if (others.length === 0) {
+    document.getElementById('modal-body').innerHTML = `<div class="empty-state">Sunucuda ışınlanacak başka oyuncu yok.</div>`;
+    document.getElementById('modal-foot').innerHTML = `<button class="btn-ghost" onclick="closeModal()">Kapat</button>`;
+  } else {
+    // Diğer oyuncuları açılır listeye (dropdown) ekle
+    const options = others.map(n => `<option value="${n}">${n}</option>`).join('');
+    document.getElementById('modal-body').innerHTML = `
+      <label class="field-label">Kime ışınlanacak?</label>
+      <select id="modal-tp-sel" class="field" style="background:var(--bg0)">
+        ${options}
+      </select>
+    `;
+    document.getElementById('modal-foot').innerHTML = `
+      <button class="btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn-primary" onclick="submitTp('${targetPlayer}')">Işınla</button>
+    `;
+  }
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function submitTp(targetPlayer) {
+  const dest = document.getElementById('modal-tp-sel')?.value;
+  if (dest) {
+    sendCmd(`tp ${targetPlayer} ${dest}`);
+    closeModal();
+    toast(`Işınlanma başarılı`, 'ok');
+  }
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 addLog('info', 'MC Panel başlatıldı. Ayarlar sekmesinden bağlan.');
