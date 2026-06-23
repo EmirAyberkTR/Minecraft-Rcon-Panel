@@ -45,7 +45,11 @@ document.getElementById('btn-rcon-connect').addEventListener('click', async () =
 
   const res = await window.mcapi.rconConnect({ host, port, password });
   if (res.success) {
+    // KAYIT KISMI
+    localStorage.setItem('rcon_settings', JSON.stringify({ host, port }));
+    
     state.rconConnected = true;
+    // ... geri kalan kodlar ...
     fb.className = 'conn-feedback ok';
     fb.textContent = '✓ RCON bağlantısı kuruldu';
     setConnStatus(true);
@@ -79,7 +83,11 @@ document.getElementById('btn-agent-connect').addEventListener('click', async () 
 
   const res = await window.mcapi.agentConnect({ host, port });
   if (res.success) {
+    // KAYIT KISMI
+    localStorage.setItem('agent_settings', JSON.stringify({ host, port }));
+    
     state.agentConnected = true;
+    // ... geri kalan kodlar ...
     fb.className = 'conn-feedback ok';
     fb.textContent = `✓ Agent bağlandı (v${res.version || '1.0'})`;
     toast('Agent bağlandı', 'ok');
@@ -681,3 +689,13 @@ function submitTp(targetPlayer) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 addLog('info', 'MC Panel başlatıldı. Ayarlar sekmesinden bağlan.');
+// Sayfa açıldığında kayıtlı bilgileri doldur
+window.addEventListener('DOMContentLoaded', () => {
+  const savedRcon = JSON.parse(localStorage.getItem('rcon_settings') || '{}');
+  if(savedRcon.host) document.getElementById('s-host').value = savedRcon.host;
+  if(savedRcon.port) document.getElementById('s-rcon-port').value = savedRcon.port;
+
+  const savedAgent = JSON.parse(localStorage.getItem('agent_settings') || '{}');
+  if(savedAgent.host) document.getElementById('a-host').value = savedAgent.host;
+  if(savedAgent.port) document.getElementById('a-port').value = savedAgent.port;
+});
