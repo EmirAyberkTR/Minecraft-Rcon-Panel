@@ -1,0 +1,61 @@
+{
+  "name": "mc-panel",
+  "version": "1.0.4",
+  "description": "Minecraft RCON Yönetim Paneli",
+  "author": "MC Panel",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win --x64",
+    "build:portable": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "rcon-client": "^4.2.4"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.mcpanel.app",
+    "productName": "MC Panel",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      {
+        "from": ".",
+        "filter": [
+          "src/**",
+          "assets/**",
+          "package.json"
+        ]
+      }
+    ],
+"win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MC Panel"
+    }
+  }
+}

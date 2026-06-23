@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MC Panel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Titlebar ── -->
+<div class="titlebar" id="titlebar">
+  <div class="titlebar-left">
+    <svg class="logo-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1" fill="#4ade80"/><rect x="13" y="3" width="8" height="8" rx="1" fill="#4ade80" opacity=".5"/><rect x="3" y="13" width="8" height="8" rx="1" fill="#4ade80" opacity=".5"/><rect x="13" y="13" width="8" height="8" rx="1" fill="#4ade80"/></svg>
+    <span class="logo-text">MC Panel</span>
+    <span class="srv-version" id="srv-version"></span>
+  </div>
+  <div class="titlebar-right">
+    <button class="win-btn" id="btn-min" title="Küçült">─</button>
+    <button class="win-btn" id="btn-max" title="Büyüt">□</button>
+    <button class="win-btn close" id="btn-close" title="Kapat">✕</button>
+  </div>
+</div>
+
+<!-- ── App Shell ── -->
+<div class="shell">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="nav-items">
+      <button class="nav-btn active" data-tab="dashboard" title="Dashboard">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-btn" data-tab="players" title="Oyuncular">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="17" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M19.5 20c0-2.5-1.8-4.5-4-5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        <span>Oyuncular</span>
+        <span class="nav-badge" id="nav-player-count" style="display:none"></span>
+      </button>
+      <button class="nav-btn" data-tab="console" title="Konsol">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 9l3 3-3 3M13 15h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Konsol</span>
+      </button>
+      <button class="nav-btn" data-tab="op" title="Op Yönetimi">
+        <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4-3 7.5-7 9-4-1.5-7-5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Op</span>
+      </button>
+      <button class="nav-btn" data-tab="plugins" title="Pluginler">
+        <svg viewBox="0 0 24 24"><path d="M12 3v4M8 7H4v4l-1 1 1 1v4h4l1 1 1-1h4l1 1 1-1h4v-4l1-1-1-1V7h-4l-1-1-1 1h-4L9 6l-1 1z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
+        <span>Pluginler</span>
+      </button>
+      <button class="nav-btn" data-tab="settings" title="Ayarlar">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Ayarlar</span>
+      </button>
+    </div>
+
+    <!-- Bağlantı durumu (sidebar alt) -->
+    <div class="conn-status" id="conn-status">
+      <div class="status-dot off" id="status-dot"></div>
+      <span id="status-label">Bağlı değil</span>
+    </div>
+  </nav>
+
+  <!-- İçerik -->
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="tab-pane active" id="tab-dashboard">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <div class="header-actions">
+          <span class="uptime-chip" id="uptime-chip" style="display:none"></span>
+          <button class="btn-ghost" id="btn-refresh" onclick="refreshAll()">
+            <svg viewBox="0 0 24 24" width="14" height="14"><path d="M4 12a8 8 0 018-8V2L12 2M20 12a8 8 0 01-8 8v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            Yenile
+          </button>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card" id="mc-cpu">
+          <div class="metric-label">CPU</div>
+          <div class="metric-value" id="m-cpu">—</div>
+          <div class="metric-sub" id="m-cpu-sub">bağlantı yok</div>
+          <div class="metric-bar"><div class="bar-fill" id="bar-cpu" style="width:0%;background:#f59e0b"></div></div>
+        </div>
+        <div class="metric-card" id="mc-ram">
+          <div class="metric-label">RAM</div>
+          <div class="metric-value" id="m-ram">—</div>
+          <div class="metric-sub" id="m-ram-sub">bağlantı yok</div>
+          <div class="metric-bar"><div class="bar-fill" id="bar-ram" style="width:0%;background:#60a5fa"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">TPS</div>
+          <div class="metric-value" id="m-tps">—</div>
+          <div class="metric-sub" id="m-tps-sub">hedef: 20</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Oyuncular</div>
+          <div class="metric-value" id="m-players">—</div>
+          <div class="metric-sub" id="m-players-sub">—</div>
+          <div class="metric-bar"><div class="bar-fill" id="bar-players" style="width:0%;background:#4ade80"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Disk</div>
+          <div class="metric-value" id="m-disk">—</div>
+          <div class="metric-sub" id="m-disk-sub">bağlantı yok</div>
+          <div class="metric-bar"><div class="bar-fill" id="bar-disk" style="width:0%;background:#a78bfa"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">MSPT</div>
+          <div class="metric-value" id="m-mspt">—</div>
+          <div class="metric-sub">ms per tick</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Online Oyuncular</span>
+            <span class="card-badge" id="d-player-badge">0</span>
+          </div>
+          <div class="card-body" id="d-player-list">
+            <div class="empty-state">Sunucuya bağlanınca oyuncular görünür.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Son Loglar</span></div>
+          <div class="card-body log-mini" id="d-log-mini"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OYUNCULAR ── -->
+    <div class="tab-pane" id="tab-players">
+      <div class="page-header">
+        <h1>Oyuncular</h1>
+        <span class="header-sub" id="player-header-sub">—</span>
+      </div>
+      <div class="card">
+        <div class="card-body" id="player-table" style="padding:0 16px">
+          <div class="empty-state" style="padding:24px 0">Sunucuya bağlanınca oyuncular görünür.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── KONSOL ── -->
+    <div class="tab-pane" id="tab-console">
+      <div class="page-header"><h1>Konsol</h1></div>
+      <div class="console-layout">
+        <div class="console-main">
+          <div class="console-wrap">
+            <div class="console-out" id="console-out"></div>
+            <div class="console-input-row">
+              <span class="prompt">/</span>
+              <input class="console-inp" id="console-inp" placeholder="komut gir..." spellcheck="false">
+              <button class="console-send" id="console-send">Gönder ↵</button>
+            </div>
+          </div>
+          <div class="quick-cmds">
+            <span class="quick-label">Hızlı:</span>
+            <button class="qbtn" data-cmd="list">list</button>
+            <button class="qbtn" data-cmd="tps">tps</button>
+            <button class="qbtn" data-cmd="plugins">plugins</button>
+            <button class="qbtn" data-cmd="version">version</button>
+            <button class="qbtn warn" data-cmd="save-all">save-all</button>
+            <button class="qbtn warn" data-cmd="reload confirm">reload</button>
+            <button class="qbtn danger" data-cmd="stop">stop</button>
+          </div>
+        </div>
+        <div class="console-side">
+          <div class="card">
+            <div class="card-head"><span class="card-title">Canlı Oyuncular</span></div>
+            <div class="card-body" id="console-players">
+              <div class="empty-state">—</div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <div class="card-head"><span class="card-title">Herkese Mesaj</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+              <input class="field" id="bc-inp" placeholder="Mesajını yaz...">
+              <button class="btn-primary" id="bc-send">Gönder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OP ── -->
+    <div class="tab-pane" id="tab-op">
+      <div class="page-header"><h1>Op Yönetimi</h1></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><span class="card-title">Op Listesi</span></div>
+          <div class="card-body" style="padding:0 16px" id="op-list">
+            <div class="empty-state" style="padding:16px 0">Op listesi çekiliyor...</div>
+          </div>
+          <div class="card-foot">
+            <input class="field" id="op-inp" placeholder="Oyuncu adı...">
+            <button class="btn-primary" id="op-add-btn">+ Op Ver</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Hızlı İşlemler</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn-ghost full" onclick="sendCmd('whitelist list')">Whitelist Listesi</button>
+            <button class="btn-ghost full" onclick="sendCmd('banlist')">Ban Listesi</button>
+            <button class="btn-ghost full" onclick="sendCmd('op --help')">Op Yardım</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PLUGİNLER ── -->
+    <div class="tab-pane" id="tab-plugins">
+      <div class="page-header">
+        <h1>Pluginler</h1>
+        <span class="header-sub" id="plugin-header-sub"></span>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Yüklü Pluginler</span>
+            <button class="btn-ghost sm" onclick="fetchPlugins()">Yenile</button>
+          </div>
+          <div class="card-body" style="padding:0 16px" id="plugin-list">
+            <div class="empty-state" style="padding:16px 0">Sunucuya bağlanınca pluginler görünür.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Plugin Detayı</span></div>
+          <div class="card-body" id="plugin-detail">
+            <div class="empty-state">Listeden bir plugin seç.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AYARLAR ── -->
+    <div class="tab-pane" id="tab-settings">
+      <div class="page-header"><h1>Ayarlar</h1></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><span class="card-title">RCON Bağlantısı</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <label class="field-label">Sunucu IP</label>
+            <input class="field" id="s-host" placeholder="192.168.1.x veya hostname" value="localhost">
+            <label class="field-label">RCON Port</label>
+            <input class="field" id="s-rcon-port" placeholder="25575" value="25575">
+            <label class="field-label">RCON Şifresi</label>
+            <input class="field" id="s-pass" type="password" placeholder="••••••••">
+            <div class="btn-row">
+              <button class="btn-primary" id="btn-rcon-connect">Bağlan</button>
+              <button class="btn-ghost" id="btn-rcon-disconnect">Bağlantıyı Kes</button>
+            </div>
+            <div class="conn-feedback" id="rcon-feedback"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Agent Bağlantısı</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <p class="field-hint">Debian'daki Python agent CPU/RAM/Disk metriklerini sağlar.</p>
+            <label class="field-label">Agent IP</label>
+            <input class="field" id="a-host" placeholder="192.168.1.x" value="localhost">
+            <label class="field-label">Agent Port</label>
+            <input class="field" id="a-port" placeholder="7842" value="7842">
+            <div class="btn-row">
+              <button class="btn-primary" id="btn-agent-connect">Bağlan</button>
+            </div>
+            <div class="conn-feedback" id="agent-feedback"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="renderer.js"></script>
+</body>
+</html>
