@@ -1,4 +1,4 @@
-readme_tr_content = """# MC Panel 🎮🖥️
+# MC Panel 🎮🖥️
 
 Minecraft sunucunuzu izlemek ve yönetmek için **Electron** ve **Vanilla JS/CSS** ile geliştirilmiş, modern ve hafif bir masaüstü uygulaması. Bu panel, Debian sunucunuzda çalışan özel bir **Python (Flask/psutil) Sistem Agent'ı** ve **RCON** protokolünü birleştirerek canlı donanım metrikleri, oyuncu yönetimi ve anlık log takibi sunar.
 
@@ -19,16 +19,17 @@ Minecraft sunucunuzu izlemek ve yönetmek için **Electron** ve **Vanilla JS/CSS
 
 Proje bağımsız çalışan iki ana parçadan oluşur:
 1. **Masaüstü İstemcisi (Electron Uygulaması):** Bilgisayarınızda yerel olarak çalışır, RCON (port `25575`) ve Agent'ın HTTP endpoint'leri üzerinden sunucuyla haberleşir.
-2. **Sistem Agent'ı (Python Scripti):** sunucunuzda arka planda sessizce çalışır, donanım istatistiklerini toplar ve yerel dosyaları okur.
+2. **Sistem Agent'ı (Python Scripti):** **Debian/Linux** sunucunuzda arka planda sessizce çalışır, donanım istatistiklerini toplar ve yerel dosyaları okur.
 
 ---
 
 ## 📦 Kurulum ve Çalıştırma
 
-### 1. Sunucu Tarafı Kurulumu
+### 1. Sunucu Tarafı Kurulumu (Debian)
 
 `agent.py` dosyasını sunucunuza yükleyin ve gerekli bağımlılıkları kurun:
 
+```bash
 # Bağımlılıkları kurun
 pip3 install flask psutil --break-system-packages
 
@@ -39,7 +40,7 @@ nohup python3 agent.py &
 
 2. İstemci Kurulumu ve Derleme (Yerel Bilgisayar)
 
-Masaüstü panelini çalıştırmak veya çalıştılabilir (.exe) hale getirmek için:
+Masaüstü panelini çalıştırmak veya çalıştırılabilir (.exe) hale getirmek için terminalde sırayla şu komutları kullanın:
 Bash
 
 # Bağımlılıkları yükleyin
