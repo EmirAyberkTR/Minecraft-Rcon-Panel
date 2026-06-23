@@ -8,7 +8,7 @@ Minecraft sunucunuzu izlemek ve yönetmek için **Electron** ve **Vanilla JS/CSS
 
 - **📊 Canlı Dashboard:** CPU kullanımı, RAM tüketimi, TPS (Ticks Per Second), MSPT (Milliseconds Per Tick), Disk alanı ve aktif oyuncu slotlarını anlık olarak izleyin.
 - **📜 Canlı Konsol Akışı:** Klasik RCON komut yanıtlarının ötesinde, Python Agent sayesinde sunucudaki `latest.log` dosyasını anlık olarak panele akıtır. Oyuncu chat'lerini, giriş-çıkış loglarını ve sunucu hatalarını sıfır gecikmeyle takip edin.
-- **👥 Oyuncu Yönetimi:** Çevrimiçi oyuncuları listeyin, ping sürelerini (ms) ve bulundukları dünyaları görün. `Işınlan (TP) [Henüz düzgün çalışmıyor]`, `Mesaj Gönder [Henüz düzgün çalışmıyor]`, `Kick` veya `Ban` gibi işlemleri arayüzden tek tıkla uygulayın.
+- **👥 Oyuncu Yönetimi:** Çevrimiçi oyuncuları listeyin, ping sürelerini (ms) ve bulundukları dünyaları görün. `Işınlan (TP)`, `Mesaj Gönder`, `Kick` veya `Ban` gibi işlemleri arayüzden tek tıkla uygulayın.
 - **👑 OP (Operatör) Yönetimi:** Sunucudaki operatör listesini `ops.json` üzerinden dinamik olarak çekin, tek tıkla yetki verin veya alın.
 - **🔌 Plugin Denetleyicisi:** Yüklü olan tüm pluginleri listeyin; tam versiyonlarını, yazarlarını, açıklamalarını ve aktiflik durumlarını (aktif/devre dışı) görün.
 - **🎨 Modern Arayüz:** Çerçevesiz (frameless) pencere tasarımı, koyu tema renk paleti ve akıcı geçişler.
