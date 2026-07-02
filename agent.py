@@ -19,7 +19,7 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 
 AGENT_PORT = 7842       # Windows tarafında bu portla bağlanacaksın
-AGENT_HOST = "0.0.0.0"  # Tüm arayüzlerden kabul et (local ağdan erişim için)
+AGENT_HOST = "127.0.0.1"  # Tüm arayüzlerden kabul et (local ağdan erişim için)
 VERSION = "1.0.0"
 START_TIME = time.time()
 
