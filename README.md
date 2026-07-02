@@ -63,7 +63,7 @@ Varsayılan port:
 
 7842
 
-!!GÜVENLİĞİNİZ İÇİN BU PORTU İNTERNETE AÇMAYIN!!
+**!!GÜVENLİĞİNİZ İÇİN BU PORTU İNTERNETE AÇMAYIN!!**
 
 ---
 
