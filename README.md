@@ -63,7 +63,7 @@ Varsayılan port:
 
 7842
 
-Eğer dışarıdan bağlanacaksanız bu portu Windows Firewall'dan açmayı unutmayın.
+!!GÜVENLİĞİNİZ İÇİN BU PORTU İNTERNETE AÇMAYIN!!
 
 ---
 
